@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شنطة الطالب - أدوات مجانية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif}
+body{background:#f6f7fb;color:#222;padding:20px}
+.header{text-align:center;padding:30px 10px}
+.header h1{font-size:32px;color:#2d5bff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;max-width:1100px;margin:20px auto}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 15px rgba(0,0,0,.06);border-top:5px solid #2d5bff}
+input,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin:6px 0;font-size:16px}
+button{background:#2d5bff;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:700;width:100%;margin-top:8px}
+.result{background:#eef2ff;padding:12px;border-radius:8px;margin-top:10px;font-weight:700;text-align:center;min-height:45px;display:flex;align-items:center;justify-content:center}
+.small{font-size:13px;color:#888;margin-top:6px}
+img.preview{max-width:100%;border-radius:8px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>🎒 شنطة الطالب</h1>
+<p>3 أدوات مجانية تساعدك في المذاكرة</p>
+</div>
+<div class="grid">
+<div class="card">
+<h2>📊 حاسبة النسبة المئوية</h2>
+<input id="total" type="number" placeholder="المجموع الكلي مثلا 280">
+<input id="got" type="number" placeholder="مجموعك انت مثلا 240">
+<button onclick="calcPer()">احسب النسبة</button>
+<div id="perRes" class="result">النتيجة هتظهر هنا</div>
+</div>
+<div class="card">
+<h2>🖼️ ضاغط الصور للمنصة</h2>
+<input type="file" id="imgInput" accept="image/*">
+<button onclick="compress()">اضغط الصورة وحملها</button>
+<div id="imgRes" class="result">حجم الصورة الجديد هيظهر هنا</div>
+<img id="preview" class="preview">
+<canvas id="canvas" style="display:none"></canvas>
+</div>
+<div class="card">
+<h2>✍️ عداد الكلمات والحروف</h2>
+<textarea id="textArea" rows="6" placeholder="الصق بحثك هنا..."></textarea>
+<button onclick="countWords()">احسب</button>
+<div id="countRes" class="result">0 كلمة - 0 حرف</div>
+</div>
+</div>
+<script>
+function calcPer(){
+ let t=parseFloat(document.getElementById('total').value);
+ let g=parseFloat(document.getElementById('got').value);
+ if(!t||!g){document.getElementById('perRes').innerText='اكتب الرقمين الاول';return}
+ let p=(g/t*100).toFixed(2);
+ let grade = p>=85?'ممتاز':p>=70?'جيد جدا':p>=50?'ناجح':'حاول تاني';
+ document.getElementById('perRes').innerText= p + '% - ' + grade;
+}
+function countWords(){
+ let txt=document.getElementById('textArea').value.trim();
+ if(!txt){document.getElementById('countRes').innerText='0 كلمة - 0 حرف';return}
+ let words=txt.split(/\s+/).length;
+ let chars=txt.length;
+ document.getElementById('countRes').innerText= words+' كلمة - '+chars+' حرف';
+}
+let originalFile;
+document.getElementById('imgInput').addEventListener('change', e=>{
+ originalFile=e.target.files[0];
+ if(originalFile){
+   document.getElementById('preview').src=URL.createObjectURL(originalFile);
+   document.getElementById('imgRes').innerText='الحجم الأصلي: '+(originalFile.size/1024).toFixed(1)+' KB';
+ }
+});
+function compress(){
+ if(!originalFile){alert('اختار صورة الاول');return}
+ let img=new Image();
+ img.src=URL.createObjectURL(originalFile);
+ img.onload=()=>{
+   let c=document.getElementById('canvas');
+   let maxW=800;
+   let scale=maxW/img.width;
+   if(scale>1) scale=1;
+   c.width=img.width*scale;
+   c.height=img.height*scale;
+   c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+   c.toBlob(blob=>{
+     let url=URL.createObjectURL(blob);
+     let a=document.createElement('a');
+     a.href=url; a.download='compressed-'+originalFile.name;
+     a.click();
+     document.getElementById('imgRes').innerText='تم الضغط! من '+(originalFile.size/1024).toFixed(1)+' KB لـ '+(blob.size/1024).toFixed(1)+' KB';
+     document.getElementById('preview').src=url;
+   },'image/jpeg',0.6);
+ }
+}
+</script>
+</body>
+</html>
